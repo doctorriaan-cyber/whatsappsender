@@ -132,11 +132,18 @@
 
         // --- COMPONENTS ---
 
-        const Header = ({ theme, toggleTheme }) => {
+        const Header = ({ theme, toggleTheme, isEditMode, toggleEditMode }) => {
             return (
                 <header className="bg-white dark:bg-gray-800 shadow-md p-4 flex items-center justify-between sticky top-0 z-10">
                     <div className="flex items-center space-x-3">
-                        <MessageIcon className="w-8 h-8 text-green-500 dark:text-green-400" />
+                         <button 
+                            onClick={toggleEditMode} 
+                            className={`p-2 rounded-full transition-colors duration-200 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-800 ${isEditMode ? 'bg-green-100 dark:bg-green-900' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`} 
+                            aria-label="Toggle edit mode" 
+                            aria-pressed={isEditMode}
+                        >
+                            <EditIcon className={`w-6 h-6 transition-colors duration-200 ${isEditMode ? 'text-green-500 dark:text-green-400' : 'text-gray-600 dark:text-gray-400'}`} />
+                        </button>
                         <h1 className="text-2xl font-bold text-gray-800 dark:text-gray-100 tracking-wide">
                             WhatsApp Quick Sender
                         </h1>
@@ -148,7 +155,7 @@
             );
         };
 
-        const FavoriteContacts = ({ contacts, onAdd, onDelete, onUpdate, selectedContact, onSelect }) => {
+        const FavoriteContacts = ({ contacts, onAdd, onDelete, onUpdate, selectedContact, onSelect, isEditMode }) => {
             const [newContactName, setNewContactName] = useState('');
             const [newContactNumber, setNewContactNumber] = useState('');
             const [editingContact, setEditingContact] = useState(null);
@@ -183,32 +190,34 @@
                         <UserIcon className="w-6 h-6" />
                         <h2>Favorite Contacts</h2>
                     </div>
-                    <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
-                        <input
-                            type="text"
-                            value={newContactName}
-                            onChange={(e) => setNewContactName(e.target.value)}
-                            placeholder="Name"
-                            className="flex-grow p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            aria-label="New contact name"
-                        />
-                        <input
-                            type="tel"
-                            value={newContactNumber}
-                            onChange={(e) => setNewContactNumber(e.target.value)}
-                            placeholder="Number (e.g., 15551234567)"
-                            className="flex-grow p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            aria-label="New contact number"
-                        />
-                        <button type="submit" className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900 transition-colors" aria-label="Add contact">
-                            <PlusIcon className="w-5 h-5" />
-                            <span className="ml-2 hidden sm:inline">Add</span>
-                        </button>
-                    </form>
+                    {isEditMode &&
+                        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2 animate-fade-in-down">
+                            <input
+                                type="text"
+                                value={newContactName}
+                                onChange={(e) => setNewContactName(e.target.value)}
+                                placeholder="Name"
+                                className="flex-grow p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                aria-label="New contact name"
+                            />
+                            <input
+                                type="tel"
+                                value={newContactNumber}
+                                onChange={(e) => setNewContactNumber(e.target.value)}
+                                placeholder="Number (e.g., 15551234567)"
+                                className="flex-grow p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                aria-label="New contact number"
+                            />
+                            <button type="submit" className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900 transition-colors" aria-label="Add contact">
+                                <PlusIcon className="w-5 h-5" />
+                                <span className="ml-2 hidden sm:inline">Add</span>
+                            </button>
+                        </form>
+                    }
                     <div className="space-y-2">
                         {contacts.map((contact) => (
                             <div key={contact.id} className="animate-fade-in-down">
-                                {editingContact?.id === contact.id ? (
+                                {isEditMode && editingContact?.id === contact.id ? (
                                     <form onSubmit={handleUpdate} className="flex flex-col sm:flex-row items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow">
                                         <input type="text" value={editingContact.name} onChange={(e) => setEditingContact({...editingContact, name: e.target.value})} className="flex-grow p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
                                         <input type="tel" value={editingContact.number} onChange={(e) => setEditingContact({...editingContact, number: e.target.value})} className="flex-grow p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
@@ -217,22 +226,24 @@
                                     </form>
                                 ) : (
                                     <div
-                                        className={`flex items-center p-3 rounded-lg cursor-pointer transition-all duration-200 ${selectedContact?.id === contact.id ? 'bg-green-200 dark:bg-green-800 ring-2 ring-green-500' : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow'}`}
-                                        onClick={() => handleSelectContact(contact)}
-                                        onTouchStart={() => handleSelectContact(contact)} // Fix for iOS double tap
+                                        className={`flex items-center p-3 rounded-lg transition-all duration-200 ${selectedContact?.id === contact.id ? 'bg-green-200 dark:bg-green-800 ring-2 ring-green-500' : 'bg-white dark:bg-gray-800 hover:bg-gray-50 dark:hover:bg-gray-700 shadow'} ${!isEditMode ? 'cursor-pointer' : ''}`}
+                                        onClick={() => !isEditMode && handleSelectContact(contact)}
+                                        onTouchStart={() => !isEditMode && handleSelectContact(contact)} // Fix for iOS double tap
                                     >
                                         <div className="flex-grow">
                                             <p className="font-medium text-gray-900 dark:text-gray-100">{contact.name}</p>
                                             <p className="text-sm text-gray-500 dark:text-gray-400">{contact.number}</p>
                                         </div>
-                                        <div className="flex items-center space-x-2">
-                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(contact); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" aria-label={`Edit ${contact.name}`}>
-                                                <EditIcon className="w-5 h-5" />
-                                            </button>
-                                            <button onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" aria-label={`Delete ${contact.name}`}>
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
+                                        {isEditMode &&
+                                            <div className="flex items-center space-x-2">
+                                                <button onClick={(e) => { e.stopPropagation(); handleEdit(contact); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" aria-label={`Edit ${contact.name}`}>
+                                                    <EditIcon className="w-5 h-5" />
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" aria-label={`Delete ${contact.name}`}>
+                                                    <TrashIcon className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
                                 )}
                              </div>
@@ -242,7 +253,7 @@
             );
         };
 
-        const FavoriteMessages = ({ messages, onAdd, onDelete, onUpdate, onSend }) => {
+        const FavoriteMessages = ({ messages, onAdd, onDelete, onUpdate, onSend, isEditMode }) => {
             const [newMessageText, setNewMessageText] = useState('');
             const [editingMessage, setEditingMessage] = useState(null);
 
@@ -267,24 +278,26 @@
             return (
                 <div className="p-4 space-y-4 flex-grow flex flex-col">
                     <h2 className="text-xl font-semibold text-gray-700 dark:text-gray-200">Favorite Messages</h2>
-                    <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2">
-                        <input
-                            type="text"
-                            value={newMessageText}
-                            onChange={(e) => setNewMessageText(e.target.value)}
-                            placeholder="New message"
-                            className="flex-grow p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:outline-none"
-                            aria-label="New favorite message"
-                        />
-                        <button type="submit" className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900 transition-colors" aria-label="Add message">
-                            <PlusIcon className="w-5 h-5" />
-                            <span className="ml-2 hidden sm:inline">Add</span>
-                        </button>
-                    </form>
+                    {isEditMode &&
+                        <form onSubmit={handleAdd} className="flex flex-col sm:flex-row gap-2 animate-fade-in-down">
+                            <input
+                                type="text"
+                                value={newMessageText}
+                                onChange={(e) => setNewMessageText(e.target.value)}
+                                placeholder="New message"
+                                className="flex-grow p-2 border rounded-md bg-white dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200 focus:ring-2 focus:ring-green-500 focus:outline-none"
+                                aria-label="New favorite message"
+                            />
+                            <button type="submit" className="flex items-center justify-center px-4 py-2 bg-green-500 text-white rounded-md hover:bg-green-600 focus:outline-none focus:ring-2 focus:ring-offset-2 focus:ring-green-500 dark:focus:ring-offset-gray-900 transition-colors" aria-label="Add message">
+                                <PlusIcon className="w-5 h-5" />
+                                <span className="ml-2 hidden sm:inline">Add</span>
+                            </button>
+                        </form>
+                    }
                     <div className="space-y-2 flex-grow overflow-y-auto">
                         {messages.map((message) => (
                            <div key={message.id} className="animate-fade-in-down">
-                               {editingMessage?.id === message.id ? (
+                               {isEditMode && editingMessage?.id === message.id ? (
                                     <form onSubmit={handleUpdate} className="flex flex-col sm:flex-row items-center gap-2 p-3 bg-white dark:bg-gray-800 rounded-lg shadow">
                                         <input type="text" value={editingMessage.text} onChange={(e) => setEditingMessage({...editingMessage, text: e.target.value})} className="w-full p-2 border rounded-md dark:bg-gray-700 dark:border-gray-600 dark:text-gray-200" />
                                         <div className="flex gap-2">
@@ -294,19 +307,21 @@
                                     </form>
                                ) : (
                                     <div
-                                        className="flex items-center p-3 bg-white dark:bg-gray-800 rounded-lg shadow cursor-pointer hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors"
-                                        onClick={() => onSend(message.text)}
-                                        onTouchStart={() => onSend(message.text)} // Fix for iOS double tap
+                                        className={`flex items-center p-3 bg-white dark:bg-gray-800 rounded-lg shadow hover:bg-gray-50 dark:hover:bg-gray-700 transition-colors ${!isEditMode ? 'cursor-pointer' : ''}`}
+                                        onClick={() => !isEditMode && onSend(message.text)}
+                                        onTouchStart={() => !isEditMode && onSend(message.text)} // Fix for iOS double tap
                                     >
                                         <p className="flex-grow text-gray-800 dark:text-gray-200">{message.text}</p>
-                                        <div className="flex items-center space-x-2">
-                                            <button onClick={(e) => { e.stopPropagation(); handleEdit(message); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" aria-label={`Edit message`}>
-                                                <EditIcon className="w-5 h-5" />
-                                            </button>
-                                            <button onClick={(e) => { e.stopPropagation(); onDelete(message.id); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" aria-label={`Delete message`}>
-                                                <TrashIcon className="w-5 h-5" />
-                                            </button>
-                                        </div>
+                                        {isEditMode &&
+                                            <div className="flex items-center space-x-2">
+                                                <button onClick={(e) => { e.stopPropagation(); handleEdit(message); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-blue-600 dark:hover:text-blue-400" aria-label={`Edit message`}>
+                                                    <EditIcon className="w-5 h-5" />
+                                                </button>
+                                                <button onClick={(e) => { e.stopPropagation(); onDelete(message.id); }} className="p-2 text-gray-500 dark:text-gray-400 hover:text-red-600 dark:hover:text-red-400" aria-label={`Delete message`}>
+                                                    <TrashIcon className="w-5 h-5" />
+                                                </button>
+                                            </div>
+                                        }
                                     </div>
                                )}
                             </div>
@@ -323,6 +338,7 @@
             const [messages, setMessages] = useState([]);
             const [selectedContact, setSelectedContact] = useState(null);
             const [theme, setTheme] = useState('light');
+            const [isEditMode, setIsEditMode] = useState(false);
             
             // Load from localStorage on initial render
             useEffect(() => {
@@ -400,9 +416,13 @@
                 setTheme(prevTheme => prevTheme === 'light' ? 'dark' : 'light');
             };
 
+             const toggleEditMode = () => {
+                setIsEditMode(prev => !prev);
+            };
+
             return (
                 <div className="flex flex-col h-screen font-sans">
-                    <Header theme={theme} toggleTheme={toggleTheme} />
+                    <Header theme={theme} toggleTheme={toggleTheme} isEditMode={isEditMode} toggleEditMode={toggleEditMode} />
                     <main className="flex-grow overflow-y-auto">
                         <FavoriteContacts
                             contacts={contacts}
@@ -411,6 +431,7 @@
                             onUpdate={handleUpdateContact}
                             selectedContact={selectedContact}
                             onSelect={setSelectedContact}
+                            isEditMode={isEditMode}
                         />
                          <div className="border-t border-gray-200 dark:border-gray-700 my-4"></div>
                         <FavoriteMessages
@@ -419,6 +440,7 @@
                             onDelete={handleDeleteMessage}
                             onUpdate={handleUpdateMessage}
                             onSend={handleSendMessage}
+                            isEditMode={isEditMode}
                         />
                     </main>
                 </div>

@@ -391,8 +391,8 @@
                 }
                 const number = selectedContact.number.replace(/\D/g, ''); // Sanitize number
                 const encodedMessage = encodeURIComponent(messageText);
-                // Use the official api.whatsapp.com link for better compatibility and emoji support
-                const url = `https://api.whatsapp.com/send?phone=${number}&text=${encodedMessage}`;
+                // Use the whatsapp:// protocol to open the app directly, avoiding issues with WhatsApp Business
+                const url = `whatsapp://send?phone=${number}&text=${encodedMessage}`;
                 window.open(url, '_blank');
             };
 

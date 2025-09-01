@@ -409,7 +409,7 @@
                 const encodedMessage = encodeURIComponent(messageText);
                 // Use the whatsapp:// protocol to open the app directly, avoiding issues with WhatsApp Business
                 const url = `whatsapp://send?phone=${number}&text=${encodedMessage}`;
-                window.open(url, '_blank');
+                window.location.href = url;
             };
 
             const toggleTheme = () => {

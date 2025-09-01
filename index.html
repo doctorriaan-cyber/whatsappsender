@@ -444,7 +444,8 @@
                 const selectedContact = contacts.find(c => c.id === selectedContactId);
                 if (selectedContact) {
                     const encodedMessage = encodeURIComponent(message.text);
-                    const url = `whatsapp://send?phone=${selectedContact.number}&text=${encodedMessage}`;
+                    // Using the official WhatsApp API link is more robust for handling special characters like emojis.
+                    const url = `https://api.whatsapp.com/send?phone=${selectedContact.number}&text=${encodedMessage}`;
                     window.open(url, '_blank', 'noopener,noreferrer');
                 }
             }, [selectedContactId, contacts]);

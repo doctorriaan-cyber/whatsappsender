@@ -84,6 +84,13 @@
             </svg>
         );
 
+        const EditIcon = (props) => (
+            <svg xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24" strokeWidth={1.5} stroke="currentColor" {...props}>
+                <path strokeLinecap="round" strokeLinejoin="round" d="M16.862 4.487l1.687-1.688a1.875 1.875 0 112.652 2.652L10.582 16.07a4.5 4.5 0 01-1.897 1.13L6 18l.8-2.685a4.5 4.5 0 011.13-1.897l8.932-8.931zm0 0L19.5 7.125M18 14v4.75A2.25 2.25 0 0115.75 21H5.25A2.25 2.25 0 013 18.75V8.25A2.25 2.25 0 015.25 6H10" />
+            </svg>
+        );
+
+
         // --- COMPONENTS ---
 
         const Header = () => {
@@ -97,10 +104,13 @@
             );
         };
         
-        const FavoriteContacts = ({ contacts, selectedContactId, onAdd, onDelete, onSelect }) => {
+        const FavoriteContacts = ({ contacts, selectedContactId, onAdd, onDelete, onSelect, onUpdate }) => {
             const [newName, setNewName] = useState('');
             const [newNumber, setNewNumber] = useState('');
             const [showForm, setShowForm] = useState(false);
+            const [editingId, setEditingId] = useState(null);
+            const [editedName, setEditedName] = useState('');
+            const [editedNumber, setEditedNumber] = useState('');
 
             const handleAdd = (e) => {
                 e.preventDefault();
@@ -109,6 +119,24 @@
                     setNewName('');
                     setNewNumber('');
                     setShowForm(false);
+                }
+            };
+
+            const handleEditClick = (contact) => {
+                setEditingId(contact.id);
+                setEditedName(contact.name);
+                setEditedNumber(contact.number);
+            };
+
+            const handleCancelEdit = () => {
+                setEditingId(null);
+            };
+
+            const handleUpdate = (e) => {
+                e.preventDefault();
+                if (editedName.trim() && editedNumber.trim()) {
+                    onUpdate(editingId, editedName, editedNumber);
+                    setEditingId(null);
                 }
             };
 
@@ -155,27 +183,50 @@
                             <p className="text-gray-500 text-center w-full">Click the '+' to add your first contact.</p>
                         )}
                         {contacts.map(contact => (
-                            <div key={contact.id} className="relative group flex-shrink-0">
-                                <button
-                                    onClick={() => onSelect(contact.id)}
-                                    className={`px-4 py-2 rounded-lg transition-all duration-200 flex items-center justify-center text-center w-36 h-20 ${
-                                        selectedContactId === contact.id
-                                        ? 'bg-teal-600 text-white ring-2 ring-teal-400'
-                                        : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
-                                    }`}
-                                >
-                                    <div>
-                                        <div className="font-bold truncate">{contact.name}</div>
-                                        <div className="text-xs text-gray-400">{contact.number}</div>
+                            <div key={contact.id} className="flex-shrink-0 w-40">
+                                {editingId === contact.id ? (
+                                    <form onSubmit={handleUpdate} className="p-2 bg-gray-700 rounded-lg space-y-2 h-28 flex flex-col justify-between animate-fade-in-down">
+                                        <input
+                                            type="text"
+                                            value={editedName}
+                                            onChange={(e) => setEditedName(e.target.value)}
+                                            className="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        />
+                                        <input
+                                            type="tel"
+                                            value={editedNumber}
+                                            onChange={(e) => setEditedNumber(e.target.value)}
+                                            className="w-full bg-gray-800 border border-gray-600 rounded px-2 py-1 text-sm text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        />
+                                        <div className="flex justify-end space-x-2">
+                                            <button type="button" onClick={handleCancelEdit} className="text-xs text-gray-400 hover:text-white">Cancel</button>
+                                            <button type="submit" className="text-xs text-teal-400 hover:text-teal-300 font-bold">Save</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div
+                                        className={`w-full h-28 p-3 rounded-lg flex flex-col justify-between cursor-pointer transition-all duration-200 ${
+                                            selectedContactId === contact.id
+                                            ? 'bg-teal-600 text-white ring-2 ring-teal-400'
+                                            : 'bg-gray-800 text-gray-300 hover:bg-gray-700'
+                                        }`}
+                                        onClick={() => onSelect(contact.id)}
+                                        onTouchStart={() => {}}
+                                    >
+                                        <div className="flex-grow">
+                                            <div className="font-bold truncate">{contact.name}</div>
+                                            <div className="text-xs text-gray-400">{contact.number}</div>
+                                        </div>
+                                        <div className="flex self-end space-x-2" onClick={e => e.stopPropagation()}>
+                                            <button onClick={() => handleEditClick(contact)} className="p-1 text-gray-400 hover:text-white transition-colors" aria-label={`Edit ${contact.name}`}>
+                                                <EditIcon className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => onDelete(contact.id)} className="p-1 text-gray-400 hover:text-red-400 transition-colors" aria-label={`Delete ${contact.name}`}>
+                                                <TrashIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
                                     </div>
-                                </button>
-                                <button
-                                    onClick={(e) => { e.stopPropagation(); onDelete(contact.id); }}
-                                    className="absolute -top-2 -right-2 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-red-700 transition-opacity focus:opacity-100"
-                                    aria-label={`Delete ${contact.name}`}
-                                >
-                                    <TrashIcon className="w-4 h-4" />
-                                </button>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -183,9 +234,11 @@
             );
         };
 
-        const FavoriteMessages = ({ messages, onAdd, onDelete, onMessageClick, isContactSelected }) => {
+        const FavoriteMessages = ({ messages, onAdd, onDelete, onMessageClick, isContactSelected, onUpdate }) => {
             const [newText, setNewText] = useState('');
             const [showForm, setShowForm] = useState(false);
+            const [editingId, setEditingId] = useState(null);
+            const [editedText, setEditedText] = useState('');
 
             const handleAdd = (e) => {
                 e.preventDefault();
@@ -193,6 +246,23 @@
                     onAdd(newText);
                     setNewText('');
                     setShowForm(false);
+                }
+            };
+
+            const handleEditClick = (message) => {
+                setEditingId(message.id);
+                setEditedText(message.text);
+            };
+        
+            const handleCancelEdit = () => {
+                setEditingId(null);
+            };
+        
+            const handleUpdate = (e) => {
+                e.preventDefault();
+                if (editedText.trim()) {
+                    onUpdate(editingId, editedText);
+                    setEditingId(null);
                 }
             };
 
@@ -230,25 +300,45 @@
                             </div>
                         )}
                         {messages.map(message => (
-                            <div key={message.id} className="group relative">
-                                <button
-                                    onClick={() => onMessageClick(message)}
-                                    className={`w-full text-left p-4 rounded-lg transition-all duration-200  ${
-                                        isContactSelected
-                                        ? 'bg-gray-700 hover:bg-teal-800 hover:shadow-lg'
-                                        : 'bg-gray-600 cursor-not-allowed opacity-60'
-                                    }`}
-                                    disabled={!isContactSelected}
-                                >
-                                    <p className="text-gray-200 whitespace-pre-wrap break-words">{message.text}</p>
-                                </button>
-                                <button
-                                    onClick={() => onDelete(message.id)}
-                                    className="absolute top-2 right-2 p-1 bg-red-600 rounded-full text-white opacity-0 group-hover:opacity-100 hover:bg-red-700 transition-opacity focus:opacity-100"
-                                    aria-label={`Delete message`}
-                                >
-                                    <TrashIcon className="w-4 h-4" />
-                                </button>
+                            <div key={message.id}>
+                                {editingId === message.id ? (
+                                    <form onSubmit={handleUpdate} className="p-2 bg-gray-600 rounded-lg space-y-2 animate-fade-in-down">
+                                        <textarea
+                                            value={editedText}
+                                            onChange={(e) => setEditedText(e.target.value)}
+                                            rows={3}
+                                            className="w-full bg-gray-700 border border-gray-500 rounded-md px-3 py-2 text-white focus:outline-none focus:ring-1 focus:ring-teal-500"
+                                        />
+                                        <div className="flex justify-end space-x-2">
+                                            <button type="button" onClick={handleCancelEdit} className="text-sm text-gray-400 hover:text-white">Cancel</button>
+                                            <button type="submit" className="text-sm text-teal-400 hover:text-teal-300 font-bold">Save</button>
+                                        </div>
+                                    </form>
+                                ) : (
+                                    <div
+                                        className={`flex items-start justify-between w-full text-left p-4 rounded-lg transition-all duration-200 ${
+                                            isContactSelected
+                                            ? 'bg-gray-700 hover:bg-teal-800'
+                                            : 'bg-gray-600 opacity-60'
+                                        }`}
+                                    >
+                                        <div
+                                            className={`flex-grow pr-4 ${isContactSelected ? 'cursor-pointer' : 'cursor-not-allowed'}`}
+                                            onClick={() => isContactSelected && onMessageClick(message)}
+                                            onTouchStart={() => {}}
+                                        >
+                                            <p className="text-gray-200 whitespace-pre-wrap break-words">{message.text}</p>
+                                        </div>
+                                        <div className="flex items-center space-x-2 flex-shrink-0">
+                                            <button onClick={() => handleEditClick(message)} className="p-1 text-gray-400 hover:text-white transition-colors" aria-label="Edit message">
+                                                <EditIcon className="w-4 h-4" />
+                                            </button>
+                                            <button onClick={() => onDelete(message.id)} className="p-1 text-gray-400 hover:text-red-400 transition-colors" aria-label="Delete message">
+                                                <TrashIcon className="w-4 h-4" />
+                                            </button>
+                                        </div>
+                                    </div>
+                                )}
                             </div>
                         ))}
                     </div>
@@ -283,9 +373,9 @@
             // Save contacts to localStorage whenever they change
             useEffect(() => {
                 try {
-                    if (contacts && contacts.length > 0) {
+                    if (contacts.length > 0) {
                         localStorage.setItem('whatsapp-sender-contacts', JSON.stringify(contacts));
-                    } else if (contacts) { // handles initial empty array
+                    } else {
                         localStorage.removeItem('whatsapp-sender-contacts');
                     }
                 } catch (error) {
@@ -296,16 +386,16 @@
             // Save messages to localStorage whenever they change
             useEffect(() => {
                 try {
-                    if (messages && messages.length > 0) {
+                     if (messages.length > 0) {
                        localStorage.setItem('whatsapp-sender-messages', JSON.stringify(messages));
-                    } else if (messages) {
+                    } else {
                        localStorage.removeItem('whatsapp-sender-messages');
                     }
                 } catch (error) {
                     console.error("Failed to save messages to localStorage", error);
                 }
             }, [messages]);
-
+            
             const displayToast = (message) => {
                 setShowToast(message);
                 setTimeout(() => {
@@ -324,6 +414,12 @@
                     setSelectedContactId(null);
                 }
             };
+            
+            const updateContact = (id, name, number) => {
+                setContacts(prev => prev.map(c => 
+                    c.id === id ? { ...c, name, number: number.replace(/\D/g, '') } : c
+                ));
+            };
 
             const addMessage = (text) => {
                 const newMessage = { id: Date.now().toString(), text };
@@ -334,6 +430,12 @@
                 setMessages(prev => prev.filter(m => m.id !== id));
             };
 
+            const updateMessage = (id, text) => {
+                setMessages(prev => prev.map(m =>
+                    m.id === id ? { ...m, text } : m
+                ));
+            };
+
             const handleMessageClick = useCallback((message) => {
                 if (!selectedContactId) {
                     displayToast("Please select a contact first!");
@@ -342,7 +444,7 @@
                 const selectedContact = contacts.find(c => c.id === selectedContactId);
                 if (selectedContact) {
                     const encodedMessage = encodeURIComponent(message.text);
-                    const url = `https://wa.me/${selectedContact.number}?text=${encodedMessage}`;
+                    const url = `whatsapp://send?phone=${selectedContact.number}&text=${encodedMessage}`;
                     window.open(url, '_blank', 'noopener,noreferrer');
                 }
             }, [selectedContactId, contacts]);
@@ -357,6 +459,7 @@
                             onAdd={addContact}
                             onDelete={deleteContact}
                             onSelect={setSelectedContactId}
+                            onUpdate={updateContact}
                         />
                         <FavoriteMessages
                             messages={messages}
@@ -364,6 +467,7 @@
                             onDelete={deleteMessage}
                             onMessageClick={handleMessageClick}
                             isContactSelected={!!selectedContactId}
+                            onUpdate={updateMessage}
                         />
                     </main>
                     {showToast && (
